@@ -1,7 +1,6 @@
-
-
+use std::env::args;
 use std::fs::{read_dir, remove_file};
-use Mac_Residues_Cleaner::helper_library::evaluate_filename_as_mac_residue;
+mod helper_library;
 //use crate::helper_library::evaluate_filename_as_mac_residue;
 
 
@@ -9,10 +8,24 @@ use Mac_Residues_Cleaner::helper_library::evaluate_filename_as_mac_residue;
 fn list_files(path_str:&str, depth:u32, file_list: &mut Vec<String>, verbose: bool) -> Result<(), Box<dyn std::error::Error>>{
 
     println!("Listing files in : {path_str} , depth: {depth}");
-    let dir_iterator = read_dir(path_str)?;
+
+
+    let dir_it_result = read_dir(path_str);
+
+    if dir_it_result.is_err() {
+        println!("Failed to read directory : {}", path_str);
+        return Ok(());
+    }
+
+    let dir_iterator = dir_it_result.unwrap();
 
 
     for entry in dir_iterator {
+
+        if entry.is_err(){
+            println!("Error while iterating directory: {}", entry.err().unwrap().kind());
+            continue;
+        }
         let entry = entry?;
         if verbose{
             println!("{:?}",entry.path());
@@ -26,7 +39,7 @@ fn list_files(path_str:&str, depth:u32, file_list: &mut Vec<String>, verbose: bo
                         println!("{filename_str}");
                     }
 
-                    let eval_positive = evaluate_filename_as_mac_residue(filename_str);
+                    let eval_positive = helper_library::evaluate_filename_as_mac_residue(filename_str);
                     if eval_positive{
                         file_list.push(filename_str.to_string());
                     }
@@ -53,10 +66,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Verbose mode on");
     }
 
+    /*
+    for i in std::env::args().zip(1..10){
+        println!("{} , {}", i.1, i.0);
+    }
+
+     */
+
+
+    let path_string = match std::env::args().nth(1) {
+        Some(path_argument) => path_argument,
+        _ => ".".to_string(),
+    };
+
+   println!("Using path as : {}", path_string);
+
     let mut candidate_file_list:Vec<String> = Vec::new();
 
-    list_files(".", 0, &mut candidate_file_list, false)?;
+    list_files(&path_string, 0, &mut candidate_file_list, verbose)?;
 
+    println!("----------- Results ----------");
+    if candidate_file_list.len() == 0{
+        println!("No candidates found, exiting");
+        return Ok(());
+    }
     println!("Candidate files:");
     candidate_file_list.iter().for_each(|filename| println!("{filename}"));
 
