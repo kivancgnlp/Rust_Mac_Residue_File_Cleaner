@@ -1,19 +1,11 @@
-use std::fs::{read_dir, remove_file, ReadDir};
-use std::path::Path;
 
-const DEBUG_TRAVERSAL:bool = false;
 
-fn evaluate_filename_as_mac_residue(filename:&str) -> bool{
-    if filename.starts_with("."){
-        println!("{filename} is possible a mac residue");
-    }
+use std::fs::{read_dir, remove_file};
+use Mac_Residues_Cleaner::helper_library::evaluate_filename_as_mac_residue;
+//use crate::helper_library::evaluate_filename_as_mac_residue;
 
-    if ".DS_Store".eq(filename){
-        return true;
-    }
 
-    false
-}
+
 fn list_files(path_str:&str, depth:u32, file_list: &mut Vec<String>, verbose: bool) -> Result<(), Box<dyn std::error::Error>>{
 
     println!("Listing files in : {path_str} , depth: {depth}");
